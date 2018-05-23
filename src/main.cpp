@@ -25,12 +25,12 @@ int main(int, char**)
         std::cout << '\n' << "Matrix size = " << matrix.size() << '\n' << '\n';
 
         std::cout << "Matrix elements:" << '\n';
-        for(auto c: matrix)
+        for(auto element: matrix)
         {
             int x;
             int y;
             int v;
-            std::tie(x, y, v) = c;
+            std::tie(x, y, v) = element;
             std::cout << x << " " << y << " " << v << std::endl;
         }
 
@@ -40,7 +40,7 @@ int main(int, char**)
         assert(matrix[2][8] == 88);
         std::cout << "(matrix[2][8] = 99) = 88;" << '\n';
         std::cout << "matrix[2][8]: " << matrix[2][8] << '\n';
-        std::cout << "Matrix size = " << matrix.size();
+        std::cout << "Matrix size = " << matrix.size() << '\n';
     }
     catch(const std::exception &e)
     {
