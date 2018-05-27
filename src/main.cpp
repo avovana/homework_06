@@ -4,7 +4,7 @@ int main(int, char**)
 {
     try
     {
-        SparseMatrix<int, 0> matrix(9, 9);
+        SparseMatrix<int, 0> matrix;
 
         for(int i = 0, j = 0; i <= 9; ++i, ++j)
         {
