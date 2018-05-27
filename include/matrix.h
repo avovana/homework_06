@@ -8,79 +8,56 @@
 #include <tuple>
 
 template <typename T, int default_value = -1> 
-struct SparseMatrix
-{
+struct SparseMatrix {
     class iterator;
 
-    SparseMatrix(std::size_t nrows, std::size_t ncols) 
-        : nrows(nrows)
-        , ncols(ncols) 
-        { }
-
-    struct Index
-    {
+    struct Index {
         std::size_t row{};
         std::size_t col{};
 
-        bool operator < (const Index& rhs) const
-        {
+        bool operator < (const Index& rhs) const {
             if(row < rhs.row) 
-            {
                 return true;
-            }
 
             if(row == rhs.row && col < rhs.col) 
-            {
                 return true;
-            }
 
             return false;
         }
     };   
 
-    struct Proxy
-    {
+    struct Proxy {
         Proxy(SparseMatrix& mtx_) : mtx(mtx_)
         { }
 
-        operator int() const 
-        { 
+        operator int() const { 
             return defV; 
         }
 
-        Proxy& operator = (int value) 
-        { 
+        Proxy& operator = (int value)  { 
             defV = value;
 
-            if(value == default_value)
-            {
+            if(value == default_value) {
                 const auto idx_iter = mtx.data.find(currIdx);
 
                 if(idx_iter != mtx.data.end())
-                {
                     mtx.data.erase(idx_iter);
-                }
-            }
-            else
-            {
+            } else {
                 mtx.data[currIdx] = value;
             }
 
             return *this;
         }
         
-        void setRow(int row)
-        {
+        void setRow(int row) {
             currIdx.row = row;
         }
         
-        void setCol(int col)
-        {
+        void setCol(int col) {
             currIdx.col = col;
         }
         
-        void updateValue()
-        {
+        void updateValue() {
             const auto idx_iter = mtx.data.find(currIdx) ;
 
             defV = idx_iter != mtx.data.end() ? idx_iter->second : default_value;
@@ -92,14 +69,12 @@ struct SparseMatrix
         Index currIdx{};
     };
     
-    struct Row
-    {
+    struct Row {
         Row(Proxy& currEl_) 
             : currEl(currEl_)
         { }
         
-        Proxy& operator [] (int col) 
-        {
+        Proxy& operator [] (int col) {
             currEl.setCol(col);
             currEl.updateValue();
             
@@ -110,31 +85,24 @@ struct SparseMatrix
         Proxy& currEl;
     };
     
-    Row& operator [] (int row_) 
-    {
+    Row& operator [] (int row_) {
         currEl.setRow(row_);
         return row;
     }
     
-    auto size()
-    {
+    auto size() {
         return data.size();
     }
     
-    iterator begin() 
-    {
+    iterator begin() {
         return iterator(data.begin()); 
     }
 
-    iterator end() 
-    {
+    iterator end() {
         return iterator(data.end());
     }
     
     private:
-    
-    std::size_t nrows;
-    std::size_t ncols;
     using index_type = Index;
     using value_type = T;
     using date_type = std::map<index_type, value_type>;
@@ -144,28 +112,23 @@ struct SparseMatrix
     Row row{currEl};
     
     public:
-    class iterator
-    {
+    class iterator {
         public:
         iterator(decltype(data.begin()) iter_) 
             : iter(iter_)
-            { }
+         { }
 
-        iterator& operator ++() 
-        {
+        iterator& operator ++() {
             ++iter;
             return *this;
         }
 
-        std::tuple<std::size_t, std::size_t, T> operator * () 
-        {
+        std::tuple<std::size_t, std::size_t, T> operator * () {
             auto element = std::make_tuple (iter->first.row, iter->first.col, iter->second);
             return element;
-            //return iter->second;
         }
 
-        bool operator != (const iterator& rhg) const
-        {
+        bool operator != (const iterator& rhg) const {
           return iter != rhg.iter;
         }   
 
@@ -173,6 +136,3 @@ struct SparseMatrix
         decltype(data.begin()) iter;
     }; 
 };
-
-
-
