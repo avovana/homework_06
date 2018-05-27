@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(test_suite_main)
 
 BOOST_AUTO_TEST_CASE(matrix_assignement_operator)
 {
-    SparseMatrix<int, 0> matrix(9, 9);
+    SparseMatrix<int, 0> matrix;
 
     (matrix[2][8] = 99) = 88;
 
@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(matrix_assignement_operator)
 
 BOOST_AUTO_TEST_CASE(matrix_fill_content)
 {
-    SparseMatrix<int, 0> matrix(9, 9);
+    SparseMatrix<int, 0> matrix;
 
     for(int i = 0, j = 0; i <= 9; ++i, ++j)
     {
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(matrix_fill_content)
 
 BOOST_AUTO_TEST_CASE(matrix_output_content)
 {
-    SparseMatrix<int, 0> matrix(9, 9);
+    SparseMatrix<int, 0> matrix;
 
     int row = 1;
     int col = 23;
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(matrix_erase)
 {
     const int defaulValue = 0;
 
-    SparseMatrix<int, defaulValue> matrix(9, 9);
+    SparseMatrix<int, defaulValue> matrix;
 
     matrix[0][5] = 99;
 
