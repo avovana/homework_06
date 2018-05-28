@@ -1,3 +1,6 @@
+#include <iostream>
+#include <cassert>
+
 #include "matrix.h"
 
 int main(int, char**)
