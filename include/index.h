@@ -1,12 +1,11 @@
 #include <memory>
 #include <iostream>
 
-template <typename DataType, std::size_t default_value = -1>
+template <typename DataType, std::size_t default_value>
 struct Proxy {
 
-    Proxy(std::shared_ptr<DataType> data_, std::size_t row, std::size_t col) 
+    Proxy(std::shared_ptr<DataType> data_)
     : data(data_)
-    , index{row, col}
     { 
         //std::cout << "Proxy ctor" << '\n';
     }
@@ -57,32 +56,36 @@ struct Proxy {
         return *this;
     }
 
+    typename DataType::key_type index; //const
+
     private:
     std::size_t value{default_value};
     
     std::shared_ptr<DataType> data;
-    typename DataType::key_type index; //const
 };
 
-template <typename DataType, std::size_t default_value = -1> 
+template <typename DataType, std::size_t default_value>
 struct Row {
 
-    Row(std::shared_ptr<DataType> data_, std::size_t row_) 
+    Row(std::shared_ptr<DataType> data_)
     : data(data_)
-    , row(row_)
     { 
         //std::cout << "Row ctor " << '\n';
     }
 
-    auto operator [] (std::size_t col_) {
+    Proxy<DataType, default_value>& operator [] (std::size_t col_) {
         //std::cout << "Row[] " << '\n';
-        return Proxy<DataType, default_value>(data, row, col_);
+        proxy.index.row = row;
+        proxy.index.col = col_;
+        return proxy;
     }
 
     //Row(Row const&) = delete;
     //Row& operator=(Row const&) = delete;
     
+    std::size_t row;
+
     private:
     std::shared_ptr<DataType> data;
-    std::size_t row;
+    Proxy<DataType, default_value> proxy{data};
 };

@@ -1,5 +1,5 @@
 // Sparse Matrix
-// v 0.9
+// v 0.95
 
 #include <iostream>
 #include <memory>
@@ -13,18 +13,21 @@ class SparseMatrix {
 
 private:
     using date_type = typename Data<T>::date_type;
-    std::shared_ptr<date_type> data;
 
-    public:
-    SparseMatrix() : data(new date_type)
+    std::shared_ptr<date_type> data;
+    Row<date_type, default_value> row;
+
+public:
+    SparseMatrix() : data(new date_type), row{data}
     {
         //std::cout << "Matrix ctor " << '\n';
     }
     
-     auto operator [] (std::size_t row)
+     Row<date_type, default_value>& operator [] (std::size_t row_)
      {
         //std::cout << "Matrix[] " << '\n';
-        return Row<date_type, default_value>(data, row);
+        row.row = row_;
+        return row;
      }
 
     auto size()
