@@ -7,6 +7,19 @@ struct Proxy {
 
     using cell_type = typename DataType::value_type;
 
+    static auto findElement(DataType& data, std::size_t row, std::size_t col)
+    {
+        const auto idx_iter = std::find_if(std::begin(data), std::end(data), [&]
+                                           (const cell_type& el)
+                                           {
+                                               bool equal = (std::get<0>(el) == row) && (std::get<1>(el) == col);
+                                               return equal;
+                                           }
+                                          );
+        return idx_iter;
+    }
+
+
     Proxy(std::shared_ptr<DataType> data_)
     : data(data_)
     { 
@@ -15,14 +28,7 @@ struct Proxy {
 
    friend std::ostream &operator<<(std::ostream &output, const Proxy<DataType, default_value> &instance) { 
 
-        const auto idx_iter = std::find_if(instance.data->begin(), instance.data->end(), [&instance]
-                           (const cell_type& el)
-                           {
-                               bool equal = (std::get<0>(el) == instance.row) && (std::get<1>(el) == instance.col);
-                               return equal;
-                           }
-                          );
-
+        const auto idx_iter = findElement(*instance.data, instance.row, instance.col);
 
             if(idx_iter != instance.data->end())
             {
@@ -39,13 +45,7 @@ struct Proxy {
 
     operator int()  
     { 
-        const auto idx_iter = std::find_if(data->begin(), data->end(), [&]
-                           (const cell_type& el)
-                           {
-                               bool equal = (std::get<0>(el) == row) && (std::get<1>(el) == col);
-                               return equal;
-                           }
-                          );
+        const auto idx_iter = findElement(*data, row, col);
 
         if(idx_iter != data->end())
             value = std::get<2>(*idx_iter);
@@ -58,13 +58,8 @@ struct Proxy {
 
     auto operator = (std::size_t value_)  { //(value_type value)
         value = value_;
-    const auto idx_iter = std::find_if(data->begin(), data->end(), [&]
-                           (const cell_type& el)
-                           {
-                               bool equal = (std::get<0>(el) == row) && (std::get<1>(el) == col);
-                               return equal;
-                           }
-                          );
+
+        const auto idx_iter = findElement(*data, row, col);
 
         //std::cout << "Proxy = " << '\n';
         if(value == default_value) {
