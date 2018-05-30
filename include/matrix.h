@@ -1,18 +1,18 @@
 // Sparse Matrix
-// v 0.95
+// v 0.96
 
 #include <iostream>
 #include <memory>
 
 #include "data.h"
 #include "index.h"
-#include "iterator.h"
 
 template <typename T, std::size_t default_value = -1>
 class SparseMatrix {
 
 private:
     using date_type = typename Data<T>::date_type;
+    using iterator = typename date_type::iterator;
 
     std::shared_ptr<date_type> data;
     Row<date_type, default_value> row;
@@ -35,13 +35,13 @@ public:
         return data->size();
     }
 
-    iterator<decltype(data->begin())> begin()
+    iterator begin()
     {
-        return iterator<decltype(data->begin())>(data->begin());
+        return data->begin();
     }
 
-    iterator<decltype(data->end())> end()
+    iterator end()
     {
-        return iterator<decltype(data->begin())>(data->end());
+        return data->end();
     }
 };

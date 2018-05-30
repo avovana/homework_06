@@ -1,25 +1,22 @@
-#include <map>
+#include <tuple>
+#include <set>
 
 template <typename T> 
 class Data
 {
-    struct Index {
-        std::size_t row{};
-        std::size_t col{};
+private:
 
-        bool operator < (const Index& rhs) const {
-            if(row < rhs.row) 
-                return true;
+    using cell_type = std::tuple<std::size_t, std::size_t, T>;
 
-            if(row == rhs.row && col < rhs.col) 
-                return true;
-
-            return false;
+    struct less_compare
+    {
+        bool operator() (const cell_type& lhs, const cell_type& rhs) const
+        {
+            return lhs < rhs;
         }
-    };   
-    
-    public:
-    using index_type = Index;
-    using value_type = T;
-    using date_type = std::map<Index, value_type>;
+    };
+
+public:
+
+    using date_type = std::set<cell_type, less_compare>;
 };
