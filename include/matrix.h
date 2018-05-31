@@ -1,6 +1,5 @@
 // Sparse Matrix
-// v 0.96
-
+// v 0.97
 #include <iostream>
 #include <memory>
 
@@ -30,17 +29,24 @@ public:
         return row;
      }
 
-    auto size()
+    const Row<date_type, default_value>& operator [] (std::size_t row_) const
+    {
+        //std::cout << "Matrix[] const " << '\n';
+        row.row = row_;
+        return row;
+    }
+
+    auto size() const
     {
         return data->size();
     }
 
-    iterator begin()
+    iterator begin() const
     {
         return data->begin();
     }
 
-    iterator end()
+    iterator end() const
     {
         return data->end();
     }

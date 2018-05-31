@@ -79,8 +79,8 @@ struct Proxy {
         return *this;
     }
 
-    std::size_t row;
-    std::size_t col;
+    mutable std::size_t row;
+    mutable std::size_t col;
 
     private:
     std::size_t value{default_value};
@@ -104,10 +104,16 @@ struct Row {
         return proxy;
     }
 
+    const auto operator [] (std::size_t col_) const {
+        //std::cout << "Row[] const" << '\n';
+        proxy.row = row;
+        proxy.col = col_;
+        return proxy;
+    }
     //Row(Row const&) = delete;
     //Row& operator=(Row const&) = delete;
 
-    std::size_t row;
+    mutable std::size_t row;
 
     private:
     std::shared_ptr<DataType> data;
