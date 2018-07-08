@@ -15,8 +15,8 @@ namespace {
     typedef std::tuple<REST...> type;
     };
 
-    //==========================================================
-    
+//===================================================
+
     template <typename T>
     int print(T arg)
     {
@@ -36,13 +36,19 @@ namespace {
     void print(size_t CurrSize, const char* str, Args... args)
     {
         std::cout << str << ". CurrSize = " << CurrSize << '\n';
-        std::cout << " values: ";
+        std::cout << " indexes: ";
         print(args...);
         std::cout << '\n';
     }
 }
 
-template<size_t CurrSize, size_t Size, typename = void >
+std::ostream &operator<<(std::ostream &output, const std::tuple<std::size_t, std::size_t> &instance) 
+{ 
+    output << std::get<0>(instance) << " " << std::get<1>(instance);
+    return output;
+}
+
+template<size_t CurrSize, size_t Size, typename Data, typename = void >
 class Proxy {
     using gen_tuple = typename generate_tuple_type<size_t, CurrSize>::type;
     using gen_tuple_next = typename generate_tuple_type<size_t, CurrSize + 1>::type;
@@ -50,7 +56,7 @@ class Proxy {
     public:
     
     template<typename... Args>
-    Proxy(Args... args) : indexes(args...) {
+    Proxy(Data data_, Args... args) : data(data_), indexes(args...) {
         
         print(CurrSize, "basic template", args...);
     }
@@ -65,45 +71,35 @@ class Proxy {
     
     template<size_t... Is>
     auto prepare_for_constr(const gen_tuple_next& tuple, std::index_sequence<Is...>) const {
-        return Proxy<CurrSize + 1, Size>(std::get<Is>(tuple)...);
+        return Proxy<CurrSize + 1, Size, Data>(data, std::get<Is>(tuple)...);
     }
 
+    Data data;
     gen_tuple indexes;
 };
 
-template<size_t CurrSize, size_t Size>
-class Proxy<CurrSize, Size, typename std::enable_if<CurrSize == Size>::type> {
+template<size_t CurrSize, size_t Size, typename Data>
+class Proxy<CurrSize, Size, Data, typename std::enable_if<CurrSize == Size - 1>::type> {
     using gen_tuple = typename generate_tuple_type<size_t, CurrSize>::type;
     using gen_tuple_next = typename generate_tuple_type<size_t, CurrSize + 1>::type;
     
     public:
     
     template<typename... Args>
-    Proxy(Args... args) : indexes(args...) {
+    Proxy(Data data_, Args... args) : data(data_), indexes(args...) {
         print(CurrSize, "specialized template", args...);
+        
+        //for(auto el : *data)
+            //std::cout << "index: " << el.first << ", " << "data: " << el.second << '\n';
     }
     
     auto operator[](const size_t index) const {
         auto new_indexes = std::tuple_cat (indexes, std::tuple<size_t>(index));
-        const auto size = std::tuple_size<decltype(new_indexes)>::value;
         
-        return std::get<size - 1>(new_indexes);
+        return (*data)[new_indexes];
     }
 
     private:
+    Data data;
     gen_tuple indexes;
 };
-
-template<size_t Size>
-class Matrix {
-    public:
-    auto operator[](const size_t index) const {
-        return Proxy<1, Size>{index};
-    }
-};
-
-int main()
-{
-    const Matrix<3> mat{};
-    std::cout << " " << mat[0][1][7][6];
-}
