@@ -53,7 +53,7 @@ template<size_t CurrSize, typename DataType>
 class DataAcessor {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
-    using DataPointer = std::shared_ptr<Container>;
+    using DataPointer = std::weak_ptr<Container>;
 
     public:
 
@@ -64,11 +64,15 @@ class DataAcessor {
 
     friend bool operator== (const DataAcessor<CurrSize, DataType>& instance, ElementType value)
     {
+        if (instance.data.expired())
+            throw std::bad_weak_ptr();
+
         ElementType currValue{};
         
-        auto idx_iter = instance.data->find(instance.indexes);
+        std::shared_ptr<Container> pData = instance.data.lock();
+        auto idx_iter = pData->find(instance.indexes);
         
-        if(idx_iter != instance.data->end())
+        if(idx_iter != pData->end())
             currValue = idx_iter->second;
             
         return currValue == value;
@@ -76,10 +80,15 @@ class DataAcessor {
 
     friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, DataType>& instance) {
     
-        if(instance.data->find(instance.indexes) != instance.data->end())
+        if (instance.data.expired())
+            throw std::bad_weak_ptr();
+
+        std::shared_ptr<Container> pData = instance.data.lock();
+
+        if(pData->find(instance.indexes) != pData->end())
         {
             //std::cout << "found" << '\n';
-            output << instance.data->operator [](instance.indexes);// << '\n';
+            output << pData->operator [](instance.indexes);// << '\n';
         }
         else
         {
@@ -93,16 +102,20 @@ class DataAcessor {
 
     auto operator = (typename Container::mapped_type value) {
 
+        if (data.expired())
+            throw std::bad_weak_ptr();
+
+        std::shared_ptr<Container> pData = data.lock();
         ElementType default_value{};
 
         if(value == default_value) {
-            auto idx_iter = data->find(indexes);
+            auto idx_iter = pData->find(indexes);
             
-            if(idx_iter != data->end())
-                data->erase(idx_iter);
+            if(idx_iter != pData->end())
+                pData->erase(idx_iter);
                 
         } else {
-            (*data)[indexes] = value;
+            (*pData)[indexes] = value;
         }
 
         return *this;
@@ -117,7 +130,7 @@ class DataAcessor {
 template<size_t CurrSize, size_t Size, typename DataType, typename = void >
 class Proxy {
     using Container = typename DataType::Container;
-    using DataPointer = std::shared_ptr<Container>;
+    using DataPointer = std::weak_ptr<Container>;
     
     public:
     template<typename... Args>
@@ -148,7 +161,7 @@ class Proxy {
 template<size_t CurrSize, size_t Size, typename DataType>
 class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size - 1>::type> {
     using Container = typename DataType::Container;
-    using DataPointer = std::shared_ptr<Container>;
+    using DataPointer = std::weak_ptr<Container>;
     
     public:
     template<typename... Args>

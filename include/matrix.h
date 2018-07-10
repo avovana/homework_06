@@ -28,7 +28,9 @@ public:
 
     auto operator [] (std::size_t index) const
     {
-        return Proxy<1, Size, DataType>(data, index);
+        auto ptr = std::weak_ptr<Container>{data};
+
+        return Proxy<1, Size, DataType>(ptr, index);
     }
 
     auto size() const
