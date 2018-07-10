@@ -16,6 +16,8 @@ namespace {
     typedef std::tuple<REST...> type;
     };
 
+    template<size_t Size>
+    using Index = typename generate_tuple_type<size_t, Size>::type;
 //===================================================
 
     template <typename T>
@@ -44,18 +46,17 @@ namespace {
 }
 
 template<size_t CurrSize, typename Container>
-class ProxyData {
-    using gen_tuple = typename generate_tuple_type<size_t, CurrSize>::type;
+class DataAcessor {
     using DataPointerType = std::shared_ptr<Container>;
 
     public:
 
     template<typename... Args>
-    ProxyData(DataPointerType data_, Args... args) : data(data_), indexes(args...) {
+    DataAcessor(DataPointerType data_, Args... args) : data(data_), indexes(args...) {
         //print(CurrSize, "ProxyData ctor", args...);
     }
 
-    friend bool operator== (const ProxyData<CurrSize, Container>& instance, typename Container::mapped_type value)
+    friend bool operator== (const DataAcessor<CurrSize, Container>& instance, typename Container::mapped_type value)
     {
         typename Container::mapped_type currValue{};
         
@@ -67,7 +68,7 @@ class ProxyData {
         return currValue == value;
     }
 
-    friend std::ostream &operator<<(std::ostream &output, const ProxyData<CurrSize, Container>& instance) {
+    friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, Container>& instance) {
     
         if(instance.data->find(instance.indexes) != instance.data->end())
         {
@@ -102,70 +103,60 @@ class ProxyData {
     }
 
     private:
+
     DataPointerType data;
-    gen_tuple indexes;
+    Index<CurrSize> indexes;
 };
 
 template<size_t CurrSize, size_t Size, typename Container, typename = void >
 class Proxy {
-    using gen_tuple = typename generate_tuple_type<size_t, CurrSize>::type;
-    using gen_tuple_next = typename generate_tuple_type<size_t, CurrSize + 1>::type;
-    using DataPointerType = std::shared_ptr<Container>;
+    using DataPointer = std::shared_ptr<Container>;
     
     public:
-    
     template<typename... Args>
-    Proxy(DataPointerType data_, Args... args) : data(data_), indexes(args...) {
-        
-        print(CurrSize, "basic template", args...);
+    Proxy(DataPointer data_, Args... args) : data(data_), indexes(args...) {
+        //print(CurrSize, "basic template", args...);
     }
     
     auto operator[](const size_t index) const {
-        auto new_indexes = std::tuple_cat (indexes, std::tuple<size_t>(index));
+        auto newIndexes = std::tuple_cat (indexes, std::tuple<size_t>(index));
         auto seq = std::make_index_sequence<CurrSize + 1>();
-        return prepare_for_constr(new_indexes, seq);
+        return createProxy(newIndexes, seq);
     }
 
     private:
-    
     template<size_t... Is>
-    auto prepare_for_constr(const gen_tuple_next& tuple, std::index_sequence<Is...>) const {
-        return Proxy<CurrSize + 1, Size, Container>(data, std::get<Is>(tuple)...);
+    auto createProxy(const Index<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
+        return Proxy<CurrSize + 1, Size, Container>(data, std::get<Is>(newIndexes)...);
     }
 
-    DataPointerType data;
-    gen_tuple indexes;
+    DataPointer data;
+    Index<CurrSize> indexes;
 };
 
 template<size_t CurrSize, size_t Size, typename Container>
 class Proxy<CurrSize, Size, Container, typename std::enable_if<CurrSize == Size - 1>::type> {
-    using gen_tuple = typename generate_tuple_type<size_t, CurrSize>::type;
-    using gen_tuple_next = typename generate_tuple_type<size_t, CurrSize + 1>::type;
-    using DataPointerType = std::shared_ptr<Container>;
+    using DataPointer = std::shared_ptr<Container>;
     
     public:
-    
     template<typename... Args>
-    Proxy(DataPointerType data_, Args... args) : data(data_), indexes(args...) {
-        print(CurrSize, "specialized template", args...);
-        
-        //for(auto el : *data)
-            //std::cout << "index: " << el.first << ", " << "data: " << el.second << '\n';
+    Proxy(DataPointer data_, Args... args) : data(data_), indexes(args...) {
+        //print(CurrSize, "specialized template", args...);
     }
     
     auto operator[](const size_t index) const {
-        auto new_indexes = std::tuple_cat(indexes, std::tuple<size_t>(index));
+        auto newIndexes = std::tuple_cat(indexes, std::tuple<size_t>(index));
         auto seq = std::make_index_sequence<CurrSize + 1>();
         
-        return prepare_for_constr(new_indexes, seq);
+        return createDataAccessor(newIndexes, seq);
     }
 
     private:
-    DataPointerType data;
-    gen_tuple indexes;
+    DataPointer data;
+    Index<CurrSize> indexes;
     
     template<size_t... Is>
-    auto prepare_for_constr(const gen_tuple_next& tuple, std::index_sequence<Is...>) const {
-        return ProxyData<CurrSize + 1, Container>(data, std::get<Is>(tuple)...);
+    auto createDataAccessor(const Index<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
+        return DataAcessor<CurrSize + 1, Container>(data, std::get<Is>(newIndexes)...);
     }
 };
