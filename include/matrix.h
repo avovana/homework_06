@@ -11,7 +11,7 @@ template <typename ElementType, std::size_t Size = 2>
 class SparseMatrix {
 
 private:
-    using Container = std::map<Index<Size>, ElementType>;
+    using Container = std::map<Indexes<Size>, ElementType>;
     
     using iterator = typename Container::iterator;
     using DataPointerType = std::shared_ptr<Container>;
