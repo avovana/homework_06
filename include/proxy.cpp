@@ -17,7 +17,9 @@ namespace {
     };
 
     template<size_t Size>
-    using Index = typename generate_tuple_type<size_t, Size>::type;
+    using Indexes = typename generate_tuple_type<size_t, Size>::type;
+    
+    using Index = typename generate_tuple_type<size_t, 1>::type;
 //===================================================
 
     template <typename T>
@@ -105,7 +107,7 @@ class DataAcessor {
     private:
 
     DataPointerType data;
-    Index<CurrSize> indexes;
+    Indexes<CurrSize> indexes;
 };
 
 template<size_t CurrSize, size_t Size, typename Container, typename = void >
@@ -119,19 +121,23 @@ class Proxy {
     }
     
     auto operator[](const size_t index) const {
-        auto newIndexes = std::tuple_cat (indexes, std::tuple<size_t>(index));
+        auto newIndexes = addIndex(indexes, index);
         auto seq = std::make_index_sequence<CurrSize + 1>();
         return createProxy(newIndexes, seq);
     }
 
     private:
     template<size_t... Is>
-    auto createProxy(const Index<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
+    auto createProxy(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
         return Proxy<CurrSize + 1, Size, Container>(data, std::get<Is>(newIndexes)...);
+    }
+    
+    auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
+        return std::tuple_cat(currentIndexes, newIndex);
     }
 
     DataPointer data;
-    Index<CurrSize> indexes;
+    Indexes<CurrSize> indexes;
 };
 
 template<size_t CurrSize, size_t Size, typename Container>
@@ -145,7 +151,7 @@ class Proxy<CurrSize, Size, Container, typename std::enable_if<CurrSize == Size 
     }
     
     auto operator[](const size_t index) const {
-        auto newIndexes = std::tuple_cat(indexes, std::tuple<size_t>(index));
+        auto newIndexes = addIndex(indexes, index);
         auto seq = std::make_index_sequence<CurrSize + 1>();
         
         return createDataAccessor(newIndexes, seq);
@@ -153,10 +159,14 @@ class Proxy<CurrSize, Size, Container, typename std::enable_if<CurrSize == Size 
 
     private:
     DataPointer data;
-    Index<CurrSize> indexes;
+    Indexes<CurrSize> indexes;
     
     template<size_t... Is>
-    auto createDataAccessor(const Index<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
+    auto createDataAccessor(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
         return DataAcessor<CurrSize + 1, Container>(data, std::get<Is>(newIndexes)...);
+    }
+    
+    auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
+        return std::tuple_cat(currentIndexes, newIndex);
     }
 };
