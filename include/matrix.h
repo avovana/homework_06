@@ -16,9 +16,9 @@ private:
     using Container = typename DataType::Container;
     
     using iterator = typename Container::iterator;
-    using DataPointerType = std::shared_ptr<Container>;
+    using DataPointer = std::shared_ptr<Container>;
 
-    DataPointerType data;
+    DataPointer data;
 
 public:
     SparseMatrix() : data(new Container)

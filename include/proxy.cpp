@@ -116,7 +116,8 @@ class DataAcessor {
 
 template<size_t CurrSize, size_t Size, typename DataType, typename = void >
 class Proxy {
-    using DataPointer = std::shared_ptr<typename DataType::Container>;
+    using Container = typename DataType::Container;
+    using DataPointer = std::shared_ptr<Container>;
     
     public:
     template<typename... Args>
