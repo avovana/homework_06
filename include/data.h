@@ -1,22 +1,10 @@
-#include <tuple>
-#include <set>
+#pragma once
 
-template <typename T> 
-class Data
+#include "proxy.h"
+
+template <typename T, std::size_t Size = 2>
+struct Data
 {
-private:
-
-    using cell_type = std::tuple<std::size_t, std::size_t, T>;
-
-    struct less_compare
-    {
-        bool operator() (const cell_type& lhs, const cell_type& rhs) const
-        {
-            return lhs < rhs;
-        }
-    };
-
-public:
-
-    using date_type = std::set<cell_type, less_compare>;
+    using ElementType = T;
+    using Container = std::map<Indexes<Size>, ElementType>;
 };

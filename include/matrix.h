@@ -6,12 +6,14 @@
 #include <utility>
 
 #include "proxy.h"
+#include "data.h"
 
 template <typename ElementType, std::size_t Size = 2>
 class SparseMatrix {
 
 private:
-    using Container = std::map<Indexes<Size>, ElementType>;
+    using DataType = Data<ElementType, Size>;
+    using Container = typename DataType::Container;
     
     using iterator = typename Container::iterator;
     using DataPointerType = std::shared_ptr<Container>;
@@ -26,7 +28,7 @@ public:
 
     auto operator [] (std::size_t index) const
     {
-        return Proxy<1, Size, Container>(data, index);
+        return Proxy<1, Size, DataType>(data, index);
     }
 
     auto size() const
