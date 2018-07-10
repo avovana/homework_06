@@ -1,39 +1,32 @@
 // Sparse Matrix
-// v 0.97
+// v 0.98
 #include <iostream>
 #include <memory>
+#include <map>
+#include <utility>
 
-#include "data.h"
-#include "index.h"
+#include "proxy.h"
 
-template <typename T, std::size_t default_value = -1>
+template <typename ElementType, std::size_t Size = 2>
 class SparseMatrix {
 
 private:
-    using date_type = typename Data<T>::date_type;
-    using iterator = typename date_type::iterator;
+    using Container = std::map<Index<Size>, ElementType>;
+    
+    using iterator = typename Container::iterator;
+    using DataPointerType = std::shared_ptr<Container>;
 
-    std::shared_ptr<date_type> data;
-    Row<date_type, default_value> row;
+    DataPointerType data;
 
 public:
-    SparseMatrix() : data(new date_type), row{data}
+    SparseMatrix() : data(new Container)
     {
-        //std::cout << "Matrix ctor " << '\n';
+        std::cout << "Matrix ctor " << '\n';
     }
-    
-     Row<date_type, default_value>& operator [] (std::size_t row_)
-     {
-        //std::cout << "Matrix[] " << '\n';
-        row.row = row_;
-        return row;
-     }
 
-    const Row<date_type, default_value>& operator [] (std::size_t row_) const
+    auto operator [] (std::size_t index) const
     {
-        //std::cout << "Matrix[] const " << '\n';
-        row.row = row_;
-        return row;
+        return Proxy<1, Size, Container>(data, index);
     }
 
     auto size() const
