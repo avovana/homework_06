@@ -17,7 +17,7 @@ class Proxy {
     
     public:
     template<typename... Args>
-    Proxy(DataPointer data_, Args... args) : data(data_), indexes(args...)
+    Proxy(DataPointer pData, Args... args) : pData{pData}, indexes(args...)
     { }
     
     auto operator[](const size_t index) const {
@@ -29,14 +29,14 @@ class Proxy {
     private:
     template<size_t... Is>
     auto createProxy(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
-        return Proxy<CurrSize + 1, Size, DataType>(data, std::get<Is>(newIndexes)...);
+        return Proxy<CurrSize + 1, Size, DataType>(pData, std::get<Is>(newIndexes)...);
     }
     
     auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
         return std::tuple_cat(currentIndexes, newIndex);
     }
 
-    DataPointer data;
+    DataPointer pData;
     Indexes<CurrSize> indexes;
 };
 
@@ -47,7 +47,7 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
     
     public:
     template<typename... Args>
-    Proxy(DataPointer data_, Args... args) : data(data_), indexes(args...)
+    Proxy(DataPointer pData, Args... args) : pData{pData}, indexes(args...)
     { }
     
     auto operator[](const size_t index) const {
@@ -58,15 +58,15 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
     }
 
     private:
-    DataPointer data;
-    Indexes<CurrSize> indexes;
-    
     template<size_t... Is>
     auto createDataAccessor(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
-        return DataAcessor<CurrSize + 1, DataType>(data, std::get<Is>(newIndexes)...);
+        return DataAcessor<CurrSize + 1, DataType>(pData, std::get<Is>(newIndexes)...);
     }
     
     auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
         return std::tuple_cat(currentIndexes, newIndex);
     }
+
+    DataPointer pData;
+    Indexes<CurrSize> indexes;
 };

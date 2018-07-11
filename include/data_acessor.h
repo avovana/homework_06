@@ -13,33 +13,35 @@ class DataAcessor {
     public:
 
     template<typename... Args>
-    DataAcessor(DataPointer data_, Args... args) : data(data_), indexes(args...) 
+    DataAcessor(DataPointer pData, Args... args) : pData{pData}, indexes(args...)
     { }
 
     friend bool operator== (const DataAcessor<CurrSize, DataType>& instance, ElementType value) {
-        if (instance.data.expired())
+
+        if (instance.pData.expired())
             throw std::bad_weak_ptr();
 
         ElementType currValue{};
         
-        std::shared_ptr<Container> pData = instance.data.lock();
-        auto idx_iter = pData->find(instance.indexes);
+        std::shared_ptr<Container> dataAcessor = instance.pData.lock();
+        auto indexIterator = dataAcessor->find(instance.indexes);
         
-        if(idx_iter != pData->end())
-            currValue = idx_iter->second;
+        if(indexIterator != dataAcessor->end())
+            currValue = indexIterator->second;
             
         return currValue == value;
     }
 
     friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, DataType>& instance) {
     
-        if (instance.data.expired())
+        if (instance.pData.expired())
             throw std::bad_weak_ptr();
 
-        std::shared_ptr<Container> pData = instance.data.lock();
+        std::shared_ptr<Container> dataAcessor = instance.pData.lock();
+        auto indexIterator = dataAcessor->find(instance.indexes);
 
-        if(pData->find(instance.indexes) != pData->end())
-            output << pData->operator [](instance.indexes);
+        if(indexIterator != dataAcessor->end())
+            output << dataAcessor->operator [](instance.indexes);
         else
             output << ElementType{};
 
@@ -48,26 +50,26 @@ class DataAcessor {
 
     auto operator = (typename Container::mapped_type value) {
 
-        if (data.expired())
+        if (pData.expired())
             throw std::bad_weak_ptr();
 
-        std::shared_ptr<Container> pData = data.lock();
+        std::shared_ptr<Container> dataAcessor = pData.lock();
         ElementType default_value{};
 
         if(value == default_value) {
-            auto idx_iter = pData->find(indexes);
+            auto indexIterator = dataAcessor->find(indexes);
             
-            if(idx_iter != pData->end())
-                pData->erase(idx_iter);
+            if(indexIterator != dataAcessor->end())
+                dataAcessor->erase(indexIterator);
                 
         } else {
-            (*pData)[indexes] = value;
+            (*dataAcessor)[indexes] = value;
         }
 
         return *this;
     }
 
     private:
-    DataPointer data;
+    DataPointer pData;
     Indexes<CurrSize> indexes;
 };
