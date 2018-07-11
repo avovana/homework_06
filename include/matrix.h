@@ -1,5 +1,6 @@
 // Sparse Matrix
-// v 0.98
+// v 0.99
+
 #include <iostream>
 #include <memory>
 #include <map>
