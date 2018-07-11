@@ -4,6 +4,50 @@
 
 using namespace indexes;
 
+template <size_t Size, typename DataType>
+class AcessorType {
+    using Container = typename DataType::Container;
+    using ElementType = typename DataType::ElementType;
+    using Iterator = typename Container::iterator;
+    using DataPointer = std::weak_ptr<Container>;
+    using Acessor = std::shared_ptr<Container>;
+
+    public:
+    AcessorType(DataPointer pData) : pData{pData}
+    { }
+
+    bool dataAvailable() const {
+        return !pData.expired();
+    }
+
+    bool elementExists(Indexes<Size> indexes) const {
+        Acessor acessor = pData.lock();
+        iterator = acessor->find(indexes);
+
+        return iterator != acessor->end();
+    }
+
+    void deleteElement() {
+        Acessor acessor = pData.lock();
+        acessor->erase(iterator);
+    }
+
+    void setValue(Indexes<Size> indexes, ElementType value)
+    {
+        Acessor acessor = pData.lock();
+        (*acessor)[indexes] = value;
+    }
+
+    ElementType getValue () const {
+        return iterator->second;
+    }
+
+    private:
+    DataPointer pData;
+    mutable Iterator iterator;
+};
+
+
 template<size_t CurrSize, typename DataType>
 class DataAcessor {
     using Container = typename DataType::Container;
@@ -14,35 +58,29 @@ class DataAcessor {
     public:
 
     template<typename... Args>
-    DataAcessor(DataPointer pData, Args... args) : pData{pData}, indexes(args...)
+    DataAcessor(DataPointer pData, Args... args) : acessor{pData}, indexes(args...)
     { }
 
     friend bool operator== (const DataAcessor<CurrSize, DataType>& instance, ElementType value) {
 
-        if (!instance.dataAvailable())
+        if (!instance.acessor.dataAvailable())
             throw std::runtime_error("No data available");
 
         ElementType currValue{};
         
-        auto acessor = instance.getDataAcessor();
-        auto indexIterator = acessor->find(instance.indexes);
-        
-        if(indexIterator != acessor->end())
-            currValue = indexIterator->second;
+        if(instance.acessor.elementExists(instance.indexes))
+            currValue = instance.acessor.getValue();
             
         return currValue == value;
     }
 
     friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, DataType>& instance) {
     
-        if (!instance.dataAvailable())
+        if (!instance.acessor.dataAvailable())
             throw std::runtime_error("No data available");
 
-        auto acessor = instance.getDataAcessor();
-        auto indexIterator = acessor->find(instance.indexes);
-
-        if(indexIterator != acessor->end())
-            output << acessor->operator [](instance.indexes);
+        if(instance.acessor.elementExists(instance.indexes))
+            output << instance.acessor.getValue();
         else
             output << ElementType{};
 
@@ -51,34 +89,24 @@ class DataAcessor {
 
     auto operator = (typename Container::mapped_type value) {
 
-        if (!dataAvailable())
+        if (!acessor.dataAvailable())
             throw std::runtime_error("No data available");
 
-        auto acessor = getDataAcessor();
         ElementType default_value{};
 
         if(value == default_value) {
-            auto indexIterator = acessor->find(indexes);
             
-            if(indexIterator != acessor->end())
-                acessor->erase(indexIterator);
+            if(acessor.elementExists(indexes))
+                acessor.deleteElement();
                 
         } else {
-            (*acessor)[indexes] = value;
+            acessor.setValue(indexes, value);
         }
 
         return *this;
     }
 
     private:
-    bool dataAvailable() const {
-        return !pData.expired();
-    }
-
-    Acessor getDataAcessor() const {
-        return pData.lock();
-    }
-
-    DataPointer pData;
+    AcessorType<CurrSize, DataType> acessor;
     Indexes<CurrSize> indexes;
 };
