@@ -90,14 +90,12 @@ class DataAcessor {
         return output;
     }
 
-    auto operator = (typename Container::mapped_type value) {
+    auto operator = (ElementType value) {
 
         if (!acessor.dataAvailable())
             throw std::runtime_error("No data available");
 
-        ElementType default_value{};
-
-        if(value == default_value) {
+        if(value == ElementType{}) {
             
             if(acessor.elementExists(indexes))
                 acessor.deleteElement();
