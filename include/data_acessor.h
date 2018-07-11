@@ -4,7 +4,7 @@
 
 using namespace indexes;
 
-template <size_t Size, typename DataType>
+template <typename IndexType, typename DataType>
 class AcessorType {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
@@ -20,7 +20,7 @@ class AcessorType {
         return !pData.expired();
     }
 
-    bool elementExists(Indexes<Size> indexes) const {
+    bool elementExists(IndexType indexes) const {
         Acessor acessor = pData.lock();
         iterator = acessor->find(indexes);
 
@@ -32,7 +32,7 @@ class AcessorType {
         acessor->erase(iterator);
     }
 
-    void setValue(Indexes<Size> indexes, ElementType value)
+    void setValue(IndexType indexes, ElementType value)
     {
         Acessor acessor = pData.lock();
         (*acessor)[indexes] = value;
@@ -48,10 +48,14 @@ class AcessorType {
 };
 
 
-template<size_t CurrSize, typename DataType>
+template<size_t Size, typename DataType>
 class DataAcessor {
+    using ThisClassType = DataAcessor<Size, DataType>;
+
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
+    using IndexType = Indexes<Size>;
+
     using DataPointer = std::weak_ptr<Container>;
     using Acessor = std::shared_ptr<Container>;
 
@@ -61,7 +65,7 @@ class DataAcessor {
     DataAcessor(DataPointer pData, Args... args) : acessor{pData}, indexes(args...)
     { }
 
-    friend bool operator== (const DataAcessor<CurrSize, DataType>& instance, ElementType value) {
+    friend bool operator== (const ThisClassType& instance, ElementType value) {
 
         if (!instance.acessor.dataAvailable())
             throw std::runtime_error("No data available");
@@ -74,7 +78,7 @@ class DataAcessor {
         return currValue == value;
     }
 
-    friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, DataType>& instance) {
+    friend std::ostream &operator<<(std::ostream &output, const ThisClassType& instance) {
     
         if (!instance.acessor.dataAvailable())
             throw std::runtime_error("No data available");
@@ -107,6 +111,6 @@ class DataAcessor {
     }
 
     private:
-    AcessorType<CurrSize, DataType> acessor;
-    Indexes<CurrSize> indexes;
+    AcessorType<IndexType, DataType> acessor;
+    IndexType indexes;
 };
