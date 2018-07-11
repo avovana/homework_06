@@ -5,15 +5,15 @@
 using namespace indexes;
 
 template <typename IndexType, typename DataType>
-class AcessorType {
+class Acessor {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
     using Iterator = typename Container::iterator;
     using DataPointer = std::weak_ptr<Container>;
-    using Acessor = std::shared_ptr<Container>;
+    using AcessorPointer = std::shared_ptr<Container>;
 
     public:
-    AcessorType(DataPointer pData) : pData{pData}
+    Acessor(DataPointer pData) : pData{pData}
     { }
 
     bool dataAvailable() const {
@@ -21,20 +21,20 @@ class AcessorType {
     }
 
     bool elementExists(IndexType indexes) const {
-        Acessor acessor = pData.lock();
+        AcessorPointer acessor = pData.lock();
         iterator = acessor->find(indexes);
 
         return iterator != acessor->end();
     }
 
     void deleteElement() {
-        Acessor acessor = pData.lock();
+        AcessorPointer acessor = pData.lock();
         acessor->erase(iterator);
     }
 
     void setValue(IndexType indexes, ElementType value)
     {
-        Acessor acessor = pData.lock();
+        AcessorPointer acessor = pData.lock();
         (*acessor)[indexes] = value;
     }
 
@@ -57,7 +57,6 @@ class DataAcessor {
     using IndexType = Indexes<Size>;
 
     using DataPointer = std::weak_ptr<Container>;
-    using Acessor = std::shared_ptr<Container>;
 
     public:
 
@@ -111,6 +110,6 @@ class DataAcessor {
     }
 
     private:
-    AcessorType<IndexType, DataType> acessor;
+    Acessor<IndexType, DataType> acessor;
     IndexType indexes;
 };
