@@ -25,17 +25,7 @@ int main(int, char**)
             std::cout << '\n';
         }
 
-        std::cout << '\n' << "Matrix size = " << matrix.size() << '\n' << '\n';
-
-        std::cout << "Matrix elements:" << '\n';
-        for(auto element: matrix)
-        {
-            int x;
-            int y;
-            int v;
-            std::tie(x, y, v) = element;
-            std::cout << x << " " << y << " " << v << std::endl;
-        }
+        std::cout << '\n' << "Matrix size = " << matrix.size() << '\n';
 
         std::cout << '\n' << "Assignment operator demonstration: " << '\n';
 
