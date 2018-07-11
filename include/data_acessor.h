@@ -9,6 +9,7 @@ class DataAcessor {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
     using DataPointer = std::weak_ptr<Container>;
+    using Acessor = std::shared_ptr<Container>;
 
     public:
 
@@ -18,15 +19,15 @@ class DataAcessor {
 
     friend bool operator== (const DataAcessor<CurrSize, DataType>& instance, ElementType value) {
 
-        if (instance.pData.expired())
-            throw std::bad_weak_ptr();
+        if (!instance.dataAvailable())
+            throw std::runtime_error("No data available");
 
         ElementType currValue{};
         
-        std::shared_ptr<Container> dataAcessor = instance.pData.lock();
-        auto indexIterator = dataAcessor->find(instance.indexes);
+        auto acessor = instance.getDataAcessor();
+        auto indexIterator = acessor->find(instance.indexes);
         
-        if(indexIterator != dataAcessor->end())
+        if(indexIterator != acessor->end())
             currValue = indexIterator->second;
             
         return currValue == value;
@@ -34,14 +35,14 @@ class DataAcessor {
 
     friend std::ostream &operator<<(std::ostream &output, const DataAcessor<CurrSize, DataType>& instance) {
     
-        if (instance.pData.expired())
-            throw std::bad_weak_ptr();
+        if (!instance.dataAvailable())
+            throw std::runtime_error("No data available");
 
-        std::shared_ptr<Container> dataAcessor = instance.pData.lock();
-        auto indexIterator = dataAcessor->find(instance.indexes);
+        auto acessor = instance.getDataAcessor();
+        auto indexIterator = acessor->find(instance.indexes);
 
-        if(indexIterator != dataAcessor->end())
-            output << dataAcessor->operator [](instance.indexes);
+        if(indexIterator != acessor->end())
+            output << acessor->operator [](instance.indexes);
         else
             output << ElementType{};
 
@@ -50,26 +51,34 @@ class DataAcessor {
 
     auto operator = (typename Container::mapped_type value) {
 
-        if (pData.expired())
-            throw std::bad_weak_ptr();
+        if (!dataAvailable())
+            throw std::runtime_error("No data available");
 
-        std::shared_ptr<Container> dataAcessor = pData.lock();
+        auto acessor = getDataAcessor();
         ElementType default_value{};
 
         if(value == default_value) {
-            auto indexIterator = dataAcessor->find(indexes);
+            auto indexIterator = acessor->find(indexes);
             
-            if(indexIterator != dataAcessor->end())
-                dataAcessor->erase(indexIterator);
+            if(indexIterator != acessor->end())
+                acessor->erase(indexIterator);
                 
         } else {
-            (*dataAcessor)[indexes] = value;
+            (*acessor)[indexes] = value;
         }
 
         return *this;
     }
 
     private:
+    bool dataAvailable() const {
+        return !pData.expired();
+    }
+
+    Acessor getDataAcessor() const {
+        return pData.lock();
+    }
+
     DataPointer pData;
     Indexes<CurrSize> indexes;
 };
