@@ -8,7 +8,6 @@ template <typename IndexType, typename DataType>
 class DataAcessorImpl {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
-    using Iterator = typename Container::iterator;
     using DataPointer = std::weak_ptr<Container>;
     using AcessorPointer = std::shared_ptr<Container>;
 
@@ -67,7 +66,6 @@ class DataAcessor {
     using DataPointer = std::weak_ptr<Container>;
 
     public:
-
     template<typename... Args>
     DataAcessor(DataPointer pData, Args... args) : acessor{pData}, indexes(args...)
     { }
