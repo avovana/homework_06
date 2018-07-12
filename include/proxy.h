@@ -21,7 +21,7 @@ class Proxy {
     { }
     
     auto operator[](const size_t index) const {
-        auto newIndexes = addIndex(indexes, index);
+        auto newIndexes = addIndex<CurrSize>(indexes, index);
         auto seq = std::make_index_sequence<CurrSize + 1>();
         return createProxy(newIndexes, seq);
     }
@@ -32,10 +32,6 @@ class Proxy {
         return Proxy<CurrSize + 1, Size, DataType>(pData, std::get<Is>(newIndexes)...);
     }
     
-    auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
-        return indexes::addIndex<CurrSize>(currentIndexes, newIndex);
-    }
-
     DataPointer pData;
     Indexes<CurrSize> indexes;
 };
@@ -51,7 +47,7 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
     { }
     
     auto operator[](const size_t index) const {
-        auto newIndexes = addIndex(indexes, index);
+        auto newIndexes = addIndex<CurrSize>(indexes, index);
         auto seq = std::make_index_sequence<CurrSize + 1>();
         
         return createDataAccessor(newIndexes, seq);
@@ -63,10 +59,6 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
         return DataAcessor<CurrSize + 1, DataType>(pData, std::get<Is>(newIndexes)...);
     }
     
-    auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
-        return indexes::addIndex<CurrSize>(currentIndexes, newIndex);
-    }
-
     DataPointer pData;
     Indexes<CurrSize> indexes;
 };
