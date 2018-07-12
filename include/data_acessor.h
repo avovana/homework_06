@@ -5,7 +5,7 @@
 using namespace indexes;
 
 template <typename IndexType, typename DataType>
-class Acessor {
+class DataAcessorImpl {
     using Container = typename DataType::Container;
     using ElementType = typename DataType::ElementType;
     using Iterator = typename Container::iterator;
@@ -13,38 +13,46 @@ class Acessor {
     using AcessorPointer = std::shared_ptr<Container>;
 
     public:
-    Acessor(DataPointer pData) : pData{pData}
+    DataAcessorImpl(DataPointer pData) : pData{pData}
     { }
 
-    bool dataAvailable() const {
-        return !pData.expired();
-    }
+    ElementType getValue (IndexType indexes) const {
 
-    bool elementExists(IndexType indexes) const {
+        if(pData.expired())
+            throw std::runtime_error("No data available");
+
         AcessorPointer acessor = pData.lock();
-        iterator = acessor->find(indexes);
+        auto iterator = acessor->find(indexes);
 
-        return iterator != acessor->end();
+        ElementType value{};
+
+        if(iterator != acessor->end())
+            value = iterator->second;
+
+        return value;
     }
 
-    void deleteElement() {
+    void setValue(IndexType indexes, ElementType value) {
+
+        if(pData.expired())
+            throw std::runtime_error("No data available");
+
         AcessorPointer acessor = pData.lock();
-        acessor->erase(iterator);
-    }
+        auto iterator = acessor->find(indexes);
 
-    void setValue(IndexType indexes, ElementType value)
-    {
-        AcessorPointer acessor = pData.lock();
-        (*acessor)[indexes] = value;
-    }
-
-    ElementType getValue () const {
-        return iterator->second;
+        if(value == ElementType{})
+        {
+            if(iterator != acessor->end())
+                acessor->erase(iterator);
+        }
+        else
+        {
+            (*acessor)[indexes] = value;
+        }
     }
 
     private:
     DataPointer pData;
-    mutable Iterator iterator;
 };
 
 
@@ -65,49 +73,22 @@ class DataAcessor {
     { }
 
     friend bool operator== (const ThisClassType& instance, ElementType value) {
-
-        if (!instance.acessor.dataAvailable())
-            throw std::runtime_error("No data available");
-
-        ElementType currValue{};
-        
-        if(instance.acessor.elementExists(instance.indexes))
-            currValue = instance.acessor.getValue();
-            
-        return currValue == value;
+        return instance.acessor.getValue(instance.indexes) == value;
     }
 
     friend std::ostream &operator<<(std::ostream &output, const ThisClassType& instance) {
-    
-        if (!instance.acessor.dataAvailable())
-            throw std::runtime_error("No data available");
-
-        if(instance.acessor.elementExists(instance.indexes))
-            output << instance.acessor.getValue();
-        else
-            output << ElementType{};
+        output << instance.acessor.getValue(instance.indexes);
 
         return output;
     }
 
     auto operator = (ElementType value) {
-
-        if (!acessor.dataAvailable())
-            throw std::runtime_error("No data available");
-
-        if(value == ElementType{}) {
-            
-            if(acessor.elementExists(indexes))
-                acessor.deleteElement();
-                
-        } else {
-            acessor.setValue(indexes, value);
-        }
+        acessor.setValue(indexes, value);
 
         return *this;
     }
 
     private:
-    Acessor<IndexType, DataType> acessor;
+    DataAcessorImpl<IndexType, DataType> acessor;
     IndexType indexes;
 };
