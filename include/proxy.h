@@ -33,7 +33,7 @@ class Proxy {
     }
     
     auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
-        return std::tuple_cat(currentIndexes, newIndex);
+        return indexes::addIndex<CurrSize>(currentIndexes, newIndex);
     }
 
     DataPointer pData;
@@ -64,7 +64,7 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
     }
     
     auto addIndex(const Indexes<CurrSize> currentIndexes, const Index newIndex) const {
-        return std::tuple_cat(currentIndexes, newIndex);
+        return indexes::addIndex<CurrSize>(currentIndexes, newIndex);
     }
 
     DataPointer pData;
