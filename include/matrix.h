@@ -23,9 +23,7 @@ private:
 
 public:
     SparseMatrix() : data(new Container)
-    {
-        std::cout << "Matrix ctor " << '\n';
-    }
+    { }
 
     auto operator [] (std::size_t index) const
     {
