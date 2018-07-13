@@ -46,7 +46,14 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
     Proxy(DataPointer pData, Args... args) : pData{pData}, indexes(args...)
     { }
     
-    auto operator[](const size_t index) const {
+    auto operator[](const size_t index) {
+        auto newIndexes = addIndex<CurrSize>(indexes, index);
+        auto seq = std::make_index_sequence<CurrSize + 1>();
+
+        return createDataAccessor(newIndexes, seq);
+    }
+
+    const auto operator[](const size_t index) const {
         auto newIndexes = addIndex<CurrSize>(indexes, index);
         auto seq = std::make_index_sequence<CurrSize + 1>();
         
@@ -55,7 +62,7 @@ class Proxy<CurrSize, Size, DataType, typename std::enable_if<CurrSize == Size -
 
     private:
     template<size_t... Is>
-    auto createDataAccessor(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
+    const auto createDataAccessor(const Indexes<CurrSize + 1>& newIndexes, std::index_sequence<Is...>) const {
         return DataAcessor<CurrSize + 1, DataType>(pData, std::get<Is>(newIndexes)...);
     }
     

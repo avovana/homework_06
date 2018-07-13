@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace indexes {
     template<typename T, unsigned N, typename... REST>
@@ -17,29 +18,43 @@ namespace indexes {
     using Index = typename generate_tuple_type<size_t, 1>::type;
 
     template<size_t Size>
-    auto addIndex(const Indexes<Size> indexes, const Index index) {
-        return std::tuple_cat(indexes, index);
+    auto addIndex(const Indexes<Size> indexes, const size_t index) {
+        return std::tuple_cat(indexes, std::tuple<size_t>(index));
     }
-}
 
-namespace print {
     template <typename T>
-    int print(T arg) {
-        std::cout << arg << " ";
-        return 1;
+    T getElements(T arg) {
+        return arg;
     }
 
     template <typename... Args>
-    void print(Args... args) {
-        bool arr[] = { print(args)...  };
-        (void)arr;
+    auto getElements(Args... args) {
+        std::array<std::size_t, sizeof...(Args)> arr = { getElements(args)...  };
+
+        std::string str;
+        for(std::size_t i = 0; i < arr.size(); ++i) {
+            if(i != 0)
+                str += ", ";
+
+            str += std::to_string(arr[i]);
+        }
+
+        return str;
     }
 
-    template <typename... Args>
-    void print(size_t CurrSize, const char* str, Args... args) {
-        std::cout << str << ". CurrSize = " << CurrSize << '\n';
-        std::cout << " indexes: ";
-        print(args...);
-        std::cout << '\n';
+    template<size_t Size, size_t... Is>
+    auto getElements_impl(const Indexes<Size>& indexes, std::index_sequence<Is...>) {
+        return getElements(std::get<Is>(indexes)...);
+    }
+
+    template<size_t Size>
+    auto getElementInString(const Indexes<Size> indexes) {
+        auto seq = std::make_index_sequence<Size>();
+        return getElements_impl<Size>(indexes, seq);
+    }
+
+    template<size_t Size>
+    bool compareIndexes(const Indexes<Size> indexes, std::string elementsInString) {
+        return getElementInString<Size>(indexes) == elementsInString;
     }
 }

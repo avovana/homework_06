@@ -1,5 +1,5 @@
 // Sparse Matrix
-// v 0.99
+// v 1.0
 
 #include <iostream>
 #include <memory>
@@ -25,25 +25,35 @@ public:
     SparseMatrix() : data(new Container)
     { }
 
-    auto operator [] (std::size_t index) const
-    {
+    auto operator [] (std::size_t index) {
         auto ptr = std::weak_ptr<Container>{data};
 
         return Proxy<1, Size, DataType>(ptr, index);
     }
 
-    auto size() const
-    {
+    const auto operator [] (std::size_t index) const {
+        auto ptr = std::weak_ptr<Container>{data};
+
+        return Proxy<1, Size, DataType>(ptr, index);
+    }
+
+    auto size() const {
         return data->size();
     }
 
-    iterator begin() const
-    {
+    auto begin() {
         return data->begin();
     }
 
-    iterator end() const
-    {
+    auto end() {
         return data->end();
+    }
+
+    auto begin() const {
+        return data->cbegin();
+    }
+
+    auto end() const {
+        return data->cend();
     }
 };
