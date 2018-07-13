@@ -26,10 +26,10 @@ BOOST_AUTO_TEST_CASE(index_generating)
     BOOST_STATIC_ASSERT(true == std::is_same< Concatenated4Indexes,                               Indexes<4> >::value );
 
     decltype(addIndex<1>(Index{}, std::size_t{})) indexes{5, 7};
-    BOOST_STATIC_ASSERT(true == compareIndexes<2>(indexes, "5, 7"));
+    BOOST_CHECK(true == compareIndexes<2>(indexes, "5, 7"));
 
     auto indexes2 = addIndex<2>(indexes, std::size_t{13});
-    BOOST_STATIC_ASSERT(true == compareIndexes<3>(indexes2, "5, 7, 13"));
+    BOOST_CHECK(true == compareIndexes<3>(indexes2, "5, 7, 13"));
 }
 
 BOOST_AUTO_TEST_CASE(matrix_assignement_operator)
